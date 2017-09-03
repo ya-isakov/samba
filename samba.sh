@@ -118,7 +118,7 @@ timezone() { local timezone="${1:-EST5EDT}"
     if [[ -w /etc/timezone && $(cat /etc/timezone) != $timezone ]]; then
         echo "$timezone" >/etc/timezone
         ln -sf /usr/share/zoneinfo/$timezone /etc/localtime
-        dpkg-reconfigure -f noninteractive tzdata >/dev/null 2>&1
+        #dpkg-reconfigure -f noninteractive tzdata >/dev/null 2>&1
     fi
 }
 
@@ -131,7 +131,7 @@ timezone() { local timezone="${1:-EST5EDT}"
 # Return: user added to container
 user() { local name="${1}" passwd="${2}" id="${3:-""}" group="${4:-""}"
     [[ "$group" ]] && { grep -q "^$group:" /etc/group || groupadd "$group"; }
-    useradd "$name" -M ${id:+-u $id} ${group:+-g $group}
+    adduser "$name" -D -H ${id:+-u $id} ${group:+-G $group}
     echo -e "$passwd\n$passwd" | smbpasswd -s -a "$name"
 }
 
@@ -198,7 +198,7 @@ while getopts ":hc:i:nprs:St:u:w:" opt; do
         n) NMBD="true" ;;
         p) PERMISSIONS="true" ;;
         r) recycle ;;
-        s) eval share $(sed 's/^\|$/"/g; s/;/" "/g' <<< $OPTARG) ;;
+        s) eval share $(sed 's/^/"/; s/$/"/; s/;/" "/g' <<< $OPTARG) ;;
         S) smb ;;
         t) timezone "$OPTARG" ;;
         u) eval user $(sed 's|;| |g' <<< $OPTARG) ;;
